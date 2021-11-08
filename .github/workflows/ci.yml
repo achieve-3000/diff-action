@@ -1,22 +1,105 @@
 name: CI
 on:
   pull_request:
+    branches:
+      - main
+      - 'releases/*'
   push:
     branches:
       - main
       - 'releases/*'
 
 jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-20.04
+    steps:
+    -
+      name: Checkout code
+      uses: actions/checkout@v2
+    -
+      name: Set Node.js 12.x
+      uses: actions/setup-node@v2.4.1
+      with:
+        node-version: 12.x
+    -
+      name: Install dependencies
+      run: npm install
+    -
+      name: Run
+      run: npm run all
+
   build:
-    runs-on: ubuntu-latest
+    name: build
+    needs: [ci]
+    runs-on: ubuntu-20.04
+    if: "${{ github.event_name == 'pull_request' }}"
+    outputs:
+      dist: ${{ steps.changes.outputs.dist }}
     steps:
-      - uses: actions/checkout@v2
-      - run: npm install
-      - run: npm run all
-          
-  test:
+    -
+      name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+    -
+      name: Set Node.js 12.x
+      uses: actions/setup-node@v2.4.1
+      with:
+        node-version: 12.x
+    -
+      name: Configure git
+      run: |
+        git config --local user.name "github-actions"
+        git config --local user.email "github-actions@github.com"
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+    -
+      name: Install dependencies
+      run: npm install
+    -
+      name: Package
+      run: npm run build && npm run package
+    -
+      id: changes
+      run: |
+        echo ::set-output name=dist::$(git diff --quiet HEAD -- dist/ && echo unchanged || echo changed)
+    -
+      name: Commit
+      if: "${{ steps.changes.outputs.dist == 'changed' }}"
+      run: |
+        git diff HEAD dist/
+        git commit -m "$(git log --format=%B -n 1 HEAD)" -m 'Build dist - triggered by https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}' -- dist/
+    -
+      name: Checkout head
+      run: git checkout HEAD
+      if: "${{ steps.changes.outputs.dist == 'changed' }}"
+    -
+      name: Push changes
+      run: git push origin ${{ github.head_ref }}
+      if: "${{ steps.changes.outputs.dist == 'changed' }}"
+
+  run:
+    name: run
     needs: [build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    if: "${{ always() && needs.build.outputs.dist != 'changed' }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: ./
+    -
+      name: Checkout code
+      uses: actions/checkout@v2
+    -
+      uses: ./
+      id: diff
+      name: Diff
+      with:
+        modules: |
+          src:
+          dist:
+            path: dist
+          workflows:
+            path: [.github/workflows]
+    -
+      name: Print output
+      run: |
+        echo "${{ toJSON(steps.diff.outputs) }}"

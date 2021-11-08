@@ -1,14 +1,6 @@
 import * as core from '@actions/core'
 import * as yaml from 'js-yaml'
-
-export interface Module {
-  name: string
-  path: string[]
-}
-
-export interface Params {
-  modules: Map<string, Module>
-}
+import {Module, Params} from './models'
 
 function getInput(name: string, defaultValue = ''): string {
   return core.getInput(name) || defaultValue
@@ -25,7 +17,7 @@ function getYamlInput<T>(name: string): T {
   }
 }
 
-function getModules(): Map<string, Module> {
+function readModules(): Map<string, Module> {
   const input = getYamlInput<Map<string, Object>>('modules')
   const entries = Object.entries(input)
   const result = new Map()
@@ -46,6 +38,6 @@ function getModules(): Map<string, Module> {
 
 export function readParams(): Readonly<Params> {
   return {
-    modules: getModules()
+    modules: readModules()
   }
 }

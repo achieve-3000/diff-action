@@ -2,7 +2,7 @@ import fs from 'fs'
 import yaml from 'js-yaml'
 import {env} from 'process'
 import {resolve} from 'path'
-import {readParams, Module} from '../src/input'
+import {readParams} from '../src/input'
 import {expect, test, beforeEach} from '@jest/globals'
 
 beforeEach(() => {
