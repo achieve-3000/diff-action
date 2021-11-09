@@ -1,33 +1,17 @@
 import * as core from '@actions/core'
-import {Params, Result} from './models'
 import {readParams} from './input'
 import {setDiffOutput} from './output'
-
-function check(config: Params): Readonly<Result> {
-  const modules = new Map()
-
-  for (const [k, v] of config.modules) {
-    modules.set(k, {
-      module: v,
-      changed: true
-    })
-  }
-
-  return {modules}
-}
+import {GithubAdapter} from './github'
 
 async function run(): Promise<void> {
   try {
     core.debug(`Running ...`)
 
     const config = readParams()
-    const diff = check(config)
+    const adapter = new GithubAdapter(config)
+    const result = await adapter.compare()
 
-    // core.info(`modules : ${core.getInput('modules')}`)
-    // core.info(`modules no trim : ${core.getInput('modules')}`)
-    // core.info(`modules : ${core.getInput('modules', {trimWhitespace: false})}`)
-
-    setDiffOutput(diff)
+    setDiffOutput(result)
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message)

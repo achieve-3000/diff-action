@@ -1,20 +1,11 @@
 import * as core from '@actions/core'
-import {Diff, Result} from './models'
+import {Result} from './models'
 
-interface Output {
-  changed: boolean
-}
-
-function format(diff: Diff): Output {
-  return {
-    changed: diff.changed
-  }
-}
-
-export function setDiffOutput(result: Result): void {
+export function setDiffOutput(result: Result): object {
   const entries = Array.from(result.modules)
-  const values = entries.map(e => [e[0], format(e[1])])
-  const diff = Object.fromEntries(values)
+  const output = Object.fromEntries(entries)
 
-  core.setOutput('diff', diff)
+  core.setOutput('diff', output)
+
+  return output
 }

@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as yaml from 'js-yaml'
 import {Module, Params} from './models'
+import {context} from '@actions/github'
 
 function getInput(name: string, defaultValue = ''): string {
   return core.getInput(name) || defaultValue
@@ -17,8 +18,8 @@ function getYamlInput<T>(name: string): T {
   }
 }
 
-function readModules(): Map<string, Module> {
-  const input = getYamlInput<Map<string, Object>>('modules')
+function getModules(): Map<string, Module> {
+  const input = getYamlInput<Map<string, Object>>('modules') || {}
   const entries = Object.entries(input)
   const result = new Map()
 
@@ -36,8 +37,47 @@ function readModules(): Map<string, Module> {
   return result
 }
 
+function getDiffRef(): [string, string] {
+  if (context.eventName === 'pull_request') {
+    return [context.payload.pull_request?.base?.sha, context.payload.pull_request?.head?.sha]
+  }
+
+  if (context.eventName === 'push') {
+    return [context.payload.before, context.payload.after]
+  }
+
+  core.setFailed(`Unsupported event ${context.eventName}.`)
+
+  return ['HEAD', 'HEAD']
+}
+
+function getBaseRef(): string {
+  return getInput('base_ref', getDiffRef()[0])
+}
+
+function getHeadRef(): string {
+  return getInput('head_ref', getDiffRef()[1])
+}
+
+function getRepoName(): string {
+  return getInput('repo_name', context.repo.repo)
+}
+
+function getRepoOwner(): string {
+  return getInput('repo_owner', context.repo.owner)
+}
+
+function getToken(): string {
+  return core.getInput('token', {required: true})
+}
+
 export function readParams(): Readonly<Params> {
   return {
-    modules: readModules()
+    token: getToken(),
+    modules: getModules(),
+    base_ref: getBaseRef(),
+    head_ref: getHeadRef(),
+    repo_name: getRepoName(),
+    repo_owner: getRepoOwner()
   }
 }

@@ -2,6 +2,21 @@ name: 'Diff'
 description: 'A GitHub Action that detects changes between commits/branches'
 author: 'Achieve 3000. <developers@achieve3000.com>'
 inputs:
+  base_ref:
+    required: false
+    description: 'Base commit ref'
+  head_ref:
+    required: false
+    description: 'Head commit ref'
+  repo_name:
+    required: false
+    description: 'Repo name'
+  repo_owner:
+    required: false
+    description: 'Repo owner'
+  token:
+    required: true
+    description: 'GH token'
   modules:
     required: true
     default: '---'
