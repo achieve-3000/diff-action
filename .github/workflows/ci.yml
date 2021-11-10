@@ -18,10 +18,10 @@ jobs:
       name: Checkout code
       uses: actions/checkout@v2
     -
-      name: Set Node.js 12.x
+      name: Set Node.js 14.x
       uses: actions/setup-node@v2.4.1
       with:
-        node-version: 12.x
+        node-version: 14.x
     -
       name: Install dependencies
       run: npm install
@@ -44,10 +44,10 @@ jobs:
         ref: ${{ github.head_ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
     -
-      name: Set Node.js 12.x
+      name: Set Node.js 14.x
       uses: actions/setup-node@v2.4.1
       with:
-        node-version: 12.x
+        node-version: 14.x
     -
       name: Configure git
       run: |
