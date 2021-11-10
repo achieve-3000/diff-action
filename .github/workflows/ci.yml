@@ -93,6 +93,7 @@ jobs:
       id: diff
       name: Diff
       with:
+        token: ${{ secrets.GITHUB_TOKEN }}
         modules: |
           src:
           dist:
