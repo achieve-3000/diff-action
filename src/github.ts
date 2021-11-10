@@ -6,6 +6,7 @@ import {GitHub} from '@actions/github/lib/utils'
 
 /* eslint-disable import/named */
 import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
+import micromatch from 'micromatch'
 /* eslint-enable import/named */
 
 type CompareCommitsParameters = RestEndpointMethodTypes['repos']['compareCommits']['parameters']
@@ -35,6 +36,10 @@ export class GithubAdapter {
     return files
   }
 
+  isMatch(module: Module, filename: string): boolean {
+    return micromatch.isMatch(filename, module.path)
+  }
+
   compareModule(module: Module, dataDiff: CompareCommitsDataDiff): DiffEntry {
     const files = dataDiff || []
     const entry: Map<string, string[]> = new Map([
@@ -51,7 +56,7 @@ export class GithubAdapter {
         continue
       }
 
-      if (!module.path.some(e => file.filename.startsWith(e))) {
+      if (!this.isMatch(module, file.filename)) {
         continue
       }
 
