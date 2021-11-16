@@ -94,8 +94,9 @@ export class GithubAdapter {
   }
 
   async compare(): Promise<Result> {
-    return {
-      modules: await this.compareModules(this.params.modules)
-    }
+    const modules = await this.compareModules(this.params.modules)
+    const changed = Array.from(modules.values()).some(e => e.changed)
+
+    return {changed, modules}
   }
 }

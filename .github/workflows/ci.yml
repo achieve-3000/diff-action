@@ -10,8 +10,8 @@ on:
       - 'releases/*'
 
 jobs:
-  ci:
-    name: ci
+  check:
+    name: Check
     runs-on: ubuntu-20.04
     steps:
     -
@@ -23,6 +23,12 @@ jobs:
       with:
         node-version: 14.x
     -
+      name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: '**/node_modules'
+        key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+    -
       name: Install dependencies
       run: npm install
     -
@@ -30,8 +36,8 @@ jobs:
       run: npm run all
 
   build:
-    name: build
-    needs: [ci]
+    name: Build
+    needs: [check]
     runs-on: ubuntu-20.04
     if: "${{ github.event_name == 'pull_request' }}"
     outputs:
@@ -44,16 +50,22 @@ jobs:
         ref: ${{ github.head_ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
     -
-      name: Set Node.js 14.x
-      uses: actions/setup-node@v2.4.1
-      with:
-        node-version: 14.x
-    -
       name: Configure git
       run: |
         git config --local user.name "github-actions"
         git config --local user.email "github-actions@github.com"
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+    -
+      name: Set Node.js 14.x
+      uses: actions/setup-node@v2.4.1
+      with:
+        node-version: 14.x
+    -
+      name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: '**/node_modules'
+        key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
     -
       name: Install dependencies
       run: npm install
@@ -78,30 +90,3 @@ jobs:
       name: Push changes
       run: git push origin ${{ github.head_ref }}
       if: "${{ steps.changes.outputs.dist == 'changed' }}"
-
-  run:
-    name: run
-    needs: [build]
-    runs-on: ubuntu-20.04
-    if: "${{ always() && needs.build.outputs.dist != 'changed' }}"
-    steps:
-    -
-      name: Checkout code
-      uses: actions/checkout@v2
-    -
-      uses: ./
-      id: diff
-      name: Diff
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        modules: |
-          src:
-          dist:
-            pattern: dist/*
-          workflows:
-            pattern: 
-              - .github/workflows/*
-    -
-      name: Print output
-      run: |
-        echo "${{ toJSON(steps.diff.outputs) }}"

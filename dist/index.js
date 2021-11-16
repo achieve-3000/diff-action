@@ -112,9 +112,9 @@ class GithubAdapter {
     }
     compare() {
         return __awaiter(this, void 0, void 0, function* () {
-            return {
-                modules: yield this.compareModules(this.params.modules)
-            };
+            const modules = yield this.compareModules(this.params.modules);
+            const changed = Array.from(modules.values()).some(e => e.changed);
+            return { changed, modules };
         });
     }
 }
@@ -307,11 +307,24 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setDiffOutput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+function createModulesOutput(entries) {
+    const compare = (a, b) => a.localeCompare(b);
+    const all = entries.map(e => e[0]).sort(compare);
+    const changes = entries
+        .filter(e => e[1].changed)
+        .map(e => e[0])
+        .sort(compare);
+    return { all, changes };
+}
 function setDiffOutput(result) {
     const entries = Array.from(result.modules);
-    const output = Object.fromEntries(entries);
-    core.setOutput('diff', output);
-    return output;
+    const modules = createModulesOutput(entries);
+    const diff = Object.fromEntries(entries);
+    const changed = result.changed;
+    core.setOutput('modules', modules);
+    core.setOutput('changed', changed);
+    core.setOutput('diff', diff);
+    return { diff, changed, modules };
 }
 exports.setDiffOutput = setDiffOutput;
 

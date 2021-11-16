@@ -7,6 +7,7 @@ import * as core from '@actions/core'
 
 function createResult(values: Map<string, string[]>): Readonly<Result> {
   const keys = Array.from(values)
+  const changed = keys.some(e => e[1].length > 0)
   const modules = new Map(
     keys.map(e => [
       e[0],
@@ -23,7 +24,7 @@ function createResult(values: Map<string, string[]>): Readonly<Result> {
     ])
   )
 
-  return {modules}
+  return {changed, modules}
 }
 
 test('Set diff output', () => {
@@ -38,7 +39,12 @@ test('Set diff output', () => {
     )
   )
 
-  const expected = {
+  const expectedModules = {
+    all: ['kubernetes', 'module1', 'module2', 'terraform'],
+    changes: ['module1', 'terraform']
+  }
+
+  const expectedDiff = {
     module1: {
       changed: true,
       files: {
@@ -69,6 +75,12 @@ test('Set diff output', () => {
     }
   }
 
-  expect(actual).toMatchObject(expected)
-  expect(core.setOutput).toHaveBeenCalledWith('diff', expected)
+  expect(actual.changed).toEqual(true)
+  expect(core.setOutput).toHaveBeenCalledWith('changed', true)
+
+  expect(actual.diff).toMatchObject(expectedDiff)
+  expect(core.setOutput).toHaveBeenCalledWith('diff', expectedDiff)
+
+  expect(actual.modules).toEqual(expectedModules)
+  expect(core.setOutput).toHaveBeenCalledWith('modules', expectedModules)
 })

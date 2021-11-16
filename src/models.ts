@@ -26,5 +26,6 @@ export interface DiffFiles {
 }
 
 export interface Result {
+  changed: boolean
   modules: Map<string, DiffEntry>
 }
