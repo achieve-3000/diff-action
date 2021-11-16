@@ -24,14 +24,14 @@ function getModules(): Map<string, Module> {
   const result = new Map()
 
   for (const [key, value] of entries) {
-    if (value?.path && !Array.isArray(value.path)) {
-      value.path = [value.path]
+    if (value?.pattern && !Array.isArray(value.pattern)) {
+      value.pattern = [value.pattern]
     }
 
     const name: string = value?.name || key
-    const path: string[] = value?.path || [key]
+    const pattern: string[] = value?.pattern || [`${key}/*`]
 
-    result.set(name, {name, path})
+    result.set(name, {name, pattern})
   }
 
   return result

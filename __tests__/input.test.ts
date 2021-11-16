@@ -55,9 +55,9 @@ test('readParams modules', () => {
       module1:
       module2: {}
       terraform:
-        path: infra/terraform
+        pattern: infra/terraform/*
       kubernetes:
-        path: [infra/kubernetes]
+        pattern: [infra/kubernetes/*]
   `.trim()
 
   const actual = readParams()
@@ -66,22 +66,22 @@ test('readParams modules', () => {
 
   expect(actual.modules.get('module1')).toMatchObject({
     name: 'module1',
-    path: ['module1']
+    pattern: ['module1/*']
   })
 
   expect(actual.modules.get('module2')).toMatchObject({
     name: 'module2',
-    path: ['module2']
+    pattern: ['module2/*']
   })
 
   expect(actual.modules.get('kubernetes')).toMatchObject({
     name: 'kubernetes',
-    path: ['infra/kubernetes']
+    pattern: ['infra/kubernetes/*']
   })
 
   expect(actual.modules.get('terraform')).toMatchObject({
     name: 'terraform',
-    path: ['infra/terraform']
+    pattern: ['infra/terraform/*']
   })
 })
 

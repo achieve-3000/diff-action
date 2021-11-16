@@ -97,9 +97,10 @@ jobs:
         modules: |
           src:
           dist:
-            path: dist
+            pattern: dist/*
           workflows:
-            path: [.github/workflows]
+            pattern: 
+              - .github/workflows/*
     -
       name: Print output
       run: |

@@ -22,7 +22,7 @@ export class GithubAdapter {
     this.octokit = octokit || getOctokit(params.token)
   }
 
-  async compareCommits(): Promise<CompareCommitsDataDiff> {
+  private async compareCommits(): Promise<CompareCommitsDataDiff> {
     const params: CompareCommitsParameters = {
       owner: this.params.repo_owner,
       repo: this.params.repo_name,
@@ -36,8 +36,8 @@ export class GithubAdapter {
     return files
   }
 
-  isMatch(module: Module, filename: string): boolean {
-    return micromatch.isMatch(filename, module.path)
+  private isMatch(module: Module, filename: string): boolean {
+    return micromatch.isMatch(filename, module.pattern)
   }
 
   compareModule(module: Module, dataDiff: CompareCommitsDataDiff): DiffEntry {

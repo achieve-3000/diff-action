@@ -61,7 +61,7 @@ class GithubAdapter {
         });
     }
     isMatch(module, filename) {
-        return micromatch_1.default.isMatch(filename, module.path);
+        return micromatch_1.default.isMatch(filename, module.pattern);
     }
     compareModule(module, dataDiff) {
         var _a, _b;
@@ -170,12 +170,12 @@ function getModules() {
     const entries = Object.entries(input);
     const result = new Map();
     for (const [key, value] of entries) {
-        if ((value === null || value === void 0 ? void 0 : value.path) && !Array.isArray(value.path)) {
-            value.path = [value.path];
+        if ((value === null || value === void 0 ? void 0 : value.pattern) && !Array.isArray(value.pattern)) {
+            value.pattern = [value.pattern];
         }
         const name = (value === null || value === void 0 ? void 0 : value.name) || key;
-        const path = (value === null || value === void 0 ? void 0 : value.path) || [key];
-        result.set(name, { name, path });
+        const pattern = (value === null || value === void 0 ? void 0 : value.pattern) || [`${key}/*`];
+        result.set(name, { name, pattern });
     }
     return result;
 }

@@ -1,6 +1,6 @@
 export interface Module {
   name: string
-  path: string[]
+  pattern: string[]
 }
 
 export interface Params {
