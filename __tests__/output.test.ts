@@ -45,10 +45,22 @@ test('Set diff output', () => {
   )
 
   const expectedTags = {
-    module1: ['module1'],
-    module2: [],
-    terraform: ['terraform'],
-    kubernetes: []
+    module1: {
+      changed: true,
+      modules: ['module1']
+    },
+    module2: {
+      changed: false,
+      modules: []
+    },
+    terraform: {
+      changed: true,
+      modules: ['terraform']
+    },
+    kubernetes: {
+      changed: false,
+      modules: []
+    }
   }
 
   const expectedModules = {

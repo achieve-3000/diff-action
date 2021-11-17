@@ -13,6 +13,11 @@ export interface ModulesOutput {
   changes: string[]
 }
 
+export interface TagOutput {
+  changed: boolean
+  modules: string[]
+}
+
 function compareStrings(a: string, b: string): number {
   return a.localeCompare(b)
 }
@@ -27,8 +32,21 @@ function createModulesOutput(entries: [string, DiffEntry][]): ModulesOutput {
   return {all, changes}
 }
 
+function createDiffOutput(tags: Map<string, string[]>): object {
+  const result = new Map()
+
+  for (const [tag, modules] of tags) {
+    result.set(tag, {
+      changed: modules.length > 0,
+      modules: modules.sort(compareStrings)
+    })
+  }
+
+  return Object.fromEntries(result)
+}
+
 export function setDiffOutput(result: Result): DiffOutput {
-  const tags = Object.fromEntries(Array.from(result.tags))
+  const tags = createDiffOutput(result.tags)
   const entries = Array.from(result.modules)
   const modules = createModulesOutput(entries)
   const diff = Object.fromEntries(entries)
