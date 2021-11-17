@@ -1,11 +1,26 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Diff'
+description: 'A GitHub Action that detects changes between commits/branches'
+author: 'Achieve 3000. <developers@achieve3000.com>'
 inputs:
-  milliseconds: # change this
+  base_ref:
+    required: false
+    description: 'Base commit ref'
+  head_ref:
+    required: false
+    description: 'Head commit ref'
+  repo_name:
+    required: false
+    description: 'Repo name'
+  repo_owner:
+    required: false
+    description: 'Repo owner'
+  token:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'GH token'
+  modules:
+    required: true
+    default: '---'
+    description: 'YAML containing modules to track'
 runs:
   using: 'node12'
   main: 'dist/index.js'
