@@ -6,25 +6,30 @@ import {setDiffOutput} from '../src/output'
 import * as core from '@actions/core'
 
 function createResult(values: Map<string, string[]>): Readonly<Result> {
-  const keys = Array.from(values)
-  const changed = keys.some(e => e[1].length > 0)
-  const modules = new Map(
-    keys.map(e => [
-      e[0],
-      {
-        changed: e[1].length > 0,
-        files: {
-          all: e[1],
-          added: [],
-          removed: [],
-          renamed: [],
-          modified: e[1]
-        }
-      }
-    ])
-  )
+  const tags = new Map()
+  const modules = new Map()
+  const entries = Array.from(values)
+  const changed = entries.some(e => e[1].length > 0)
 
-  return {changed, modules}
+  for (const [key, value] of entries) {
+    const changed = value.length > 0
+    const diff = {
+      changed: value.length > 0,
+      tags: [key],
+      files: {
+        all: value,
+        added: [],
+        removed: [],
+        renamed: [],
+        modified: value
+      }
+    }
+
+    modules.set(key, diff)
+    tags.set(key, changed ? [key] : [])
+  }
+
+  return {changed, tags, modules}
 }
 
 test('Set diff output', () => {
@@ -39,6 +44,13 @@ test('Set diff output', () => {
     )
   )
 
+  const expectedTags = {
+    module1: ['module1'],
+    module2: [],
+    terraform: ['terraform'],
+    kubernetes: []
+  }
+
   const expectedModules = {
     all: ['kubernetes', 'module1', 'module2', 'terraform'],
     changes: ['module1', 'terraform']
@@ -47,6 +59,7 @@ test('Set diff output', () => {
   const expectedDiff = {
     module1: {
       changed: true,
+      tags: ['module1'],
       files: {
         all: ['README.md'],
         added: [],
@@ -57,10 +70,12 @@ test('Set diff output', () => {
     },
     module2: {
       changed: false,
+      tags: ['module2'],
       files: {all: [], added: [], removed: [], renamed: [], modified: []}
     },
     terraform: {
       changed: true,
+      tags: ['terraform'],
       files: {
         all: ['README.md'],
         added: [],
@@ -71,12 +86,16 @@ test('Set diff output', () => {
     },
     kubernetes: {
       changed: false,
+      tags: ['kubernetes'],
       files: {all: [], added: [], removed: [], renamed: [], modified: []}
     }
   }
 
   expect(actual.changed).toEqual(true)
   expect(core.setOutput).toHaveBeenCalledWith('changed', true)
+
+  expect(actual.tags).toEqual(expectedTags)
+  expect(core.setOutput).toHaveBeenCalledWith('tags', expectedTags)
 
   expect(actual.diff).toMatchObject(expectedDiff)
   expect(core.setOutput).toHaveBeenCalledWith('diff', expectedDiff)

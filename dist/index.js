@@ -63,6 +63,20 @@ class GithubAdapter {
     isMatch(module, filename) {
         return micromatch_1.default.isMatch(filename, module.pattern);
     }
+    mapModuleTags(modules) {
+        const result = new Map();
+        for (const [module, entry] of modules) {
+            for (const tag of entry.tags) {
+                const tags = result.get(tag) || [];
+                const set = new Set(tags);
+                if (entry.changed) {
+                    set.add(module);
+                }
+                result.set(tag, Array.from(set));
+            }
+        }
+        return result;
+    }
     compareModule(module, dataDiff) {
         var _a, _b;
         const files = dataDiff || [];
@@ -91,6 +105,7 @@ class GithubAdapter {
         const modified = entry.get('modified') || [];
         return {
             changed: all.length > 0,
+            tags: module.tags,
             files: {
                 all,
                 added,
@@ -114,7 +129,8 @@ class GithubAdapter {
         return __awaiter(this, void 0, void 0, function* () {
             const modules = yield this.compareModules(this.params.modules);
             const changed = Array.from(modules.values()).some(e => e.changed);
-            return { changed, modules };
+            const tags = this.mapModuleTags(modules);
+            return { changed, tags, modules };
         });
     }
 }
@@ -174,8 +190,9 @@ function getModules() {
             value.pattern = [value.pattern];
         }
         const name = (value === null || value === void 0 ? void 0 : value.name) || key;
+        const tags = (value === null || value === void 0 ? void 0 : value.tags) || [];
         const pattern = (value === null || value === void 0 ? void 0 : value.pattern) || [`${key}/*`];
-        result.set(name, { name, pattern });
+        result.set(name, { name, tags, pattern });
     }
     return result;
 }
@@ -307,24 +324,28 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setDiffOutput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+function compareStrings(a, b) {
+    return a.localeCompare(b);
+}
 function createModulesOutput(entries) {
-    const compare = (a, b) => a.localeCompare(b);
-    const all = entries.map(e => e[0]).sort(compare);
+    const all = entries.map(e => e[0]).sort(compareStrings);
     const changes = entries
         .filter(e => e[1].changed)
         .map(e => e[0])
-        .sort(compare);
+        .sort(compareStrings);
     return { all, changes };
 }
 function setDiffOutput(result) {
+    const tags = Object.fromEntries(Array.from(result.tags));
     const entries = Array.from(result.modules);
     const modules = createModulesOutput(entries);
     const diff = Object.fromEntries(entries);
     const changed = result.changed;
     core.setOutput('modules', modules);
     core.setOutput('changed', changed);
+    core.setOutput('tags', tags);
     core.setOutput('diff', diff);
-    return { diff, changed, modules };
+    return { diff, tags, changed, modules };
 }
 exports.setDiffOutput = setDiffOutput;
 

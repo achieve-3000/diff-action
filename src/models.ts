@@ -1,5 +1,6 @@
 export interface Module {
   name: string
+  tags: string[]
   pattern: string[]
 }
 
@@ -15,6 +16,7 @@ export interface Params {
 export interface DiffEntry {
   changed: boolean
   files: DiffFiles
+  tags: string[]
 }
 
 export interface DiffFiles {
@@ -27,5 +29,6 @@ export interface DiffFiles {
 
 export interface Result {
   changed: boolean
+  tags: Map<string, string[]>
   modules: Map<string, DiffEntry>
 }

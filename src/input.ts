@@ -29,9 +29,10 @@ function getModules(): Map<string, Module> {
     }
 
     const name: string = value?.name || key
+    const tags: string[] = value?.tags || []
     const pattern: string[] = value?.pattern || [`${key}/*`]
 
-    result.set(name, {name, pattern})
+    result.set(name, {name, tags, pattern})
   }
 
   return result
