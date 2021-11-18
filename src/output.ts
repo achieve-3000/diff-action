@@ -5,6 +5,7 @@ export interface DiffOutput {
   diff: object
   changed: boolean
   modules: ModulesOutput
+  tags: object
 }
 
 export interface ModulesOutput {
@@ -12,18 +13,22 @@ export interface ModulesOutput {
   changes: string[]
 }
 
+function compareStrings(a: string, b: string): number {
+  return a.localeCompare(b)
+}
+
 function createModulesOutput(entries: [string, DiffEntry][]): ModulesOutput {
-  const compare = (a: string, b: string): number => a.localeCompare(b)
-  const all = entries.map(e => e[0]).sort(compare)
+  const all = entries.map(e => e[0]).sort(compareStrings)
   const changes = entries
     .filter(e => e[1].changed)
     .map(e => e[0])
-    .sort(compare)
+    .sort(compareStrings)
 
   return {all, changes}
 }
 
 export function setDiffOutput(result: Result): DiffOutput {
+  const tags = Object.fromEntries(Array.from(result.tags))
   const entries = Array.from(result.modules)
   const modules = createModulesOutput(entries)
   const diff = Object.fromEntries(entries)
@@ -31,7 +36,8 @@ export function setDiffOutput(result: Result): DiffOutput {
 
   core.setOutput('modules', modules)
   core.setOutput('changed', changed)
+  core.setOutput('tags', tags)
   core.setOutput('diff', diff)
 
-  return {diff, changed, modules}
+  return {diff, tags, changed, modules}
 }

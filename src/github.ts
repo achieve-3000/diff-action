@@ -40,6 +40,25 @@ export class GithubAdapter {
     return micromatch.isMatch(filename, module.pattern)
   }
 
+  private mapModuleTags(modules: Map<string, DiffEntry>): Map<string, string[]> {
+    const result = new Map()
+
+    for (const [module, entry] of modules) {
+      for (const tag of entry.tags) {
+        const tags = result.get(tag) || []
+        const set = new Set(tags)
+
+        if (entry.changed) {
+          set.add(module)
+        }
+
+        result.set(tag, Array.from(set))
+      }
+    }
+
+    return result
+  }
+
   compareModule(module: Module, dataDiff: CompareCommitsDataDiff): DiffEntry {
     const files = dataDiff || []
     const entry: Map<string, string[]> = new Map([
@@ -72,6 +91,7 @@ export class GithubAdapter {
 
     return {
       changed: all.length > 0,
+      tags: module.tags,
       files: {
         all,
         added,
@@ -96,7 +116,8 @@ export class GithubAdapter {
   async compare(): Promise<Result> {
     const modules = await this.compareModules(this.params.modules)
     const changed = Array.from(modules.values()).some(e => e.changed)
+    const tags = this.mapModuleTags(modules)
 
-    return {changed, modules}
+    return {changed, tags, modules}
   }
 }
