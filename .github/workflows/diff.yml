@@ -82,11 +82,11 @@ jobs:
     needs: [diff]
     name: Print ts
     runs-on: ubuntu-20.04
-    if: ${{ fromJson(needs.diff.outputs.tags).ts }}
+    if: ${{ fromJson(needs.diff.outputs.tags).ts.changed }}
     strategy:
       fail-fast: false
       matrix:
-        module: ${{ fromJson(needs.diff.outputs.tags).ts }}
+        module: ${{ fromJson(needs.diff.outputs.tags).ts.modules }}
     steps:
     -
       name: Print module
@@ -102,11 +102,11 @@ jobs:
     needs: [diff]
     name: Print js
     runs-on: ubuntu-20.04
-    if: ${{ fromJson(needs.diff.outputs.tags).js }}
+    if: ${{ fromJson(needs.diff.outputs.tags).js.changed }}
     strategy:
       fail-fast: false
       matrix:
-        module: ${{ fromJson(needs.diff.outputs.tags).js }}
+        module: ${{ fromJson(needs.diff.outputs.tags).js.modules }}
     steps:
     -
       name: Print module

@@ -335,8 +335,18 @@ function createModulesOutput(entries) {
         .sort(compareStrings);
     return { all, changes };
 }
+function createDiffOutput(tags) {
+    const result = new Map();
+    for (const [tag, modules] of tags) {
+        result.set(tag, {
+            changed: modules.length > 0,
+            modules: modules.sort(compareStrings)
+        });
+    }
+    return Object.fromEntries(result);
+}
 function setDiffOutput(result) {
-    const tags = Object.fromEntries(Array.from(result.tags));
+    const tags = createDiffOutput(result.tags);
     const entries = Array.from(result.modules);
     const modules = createModulesOutput(entries);
     const diff = Object.fromEntries(entries);
