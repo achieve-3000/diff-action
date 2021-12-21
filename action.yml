@@ -1,4 +1,4 @@
-name: 'Diff'
+name: 'A3K Diff'
 description: 'A GitHub Action that detects changes between commits/branches'
 author: 'Achieve 3000. <developers@achieve3000.com>'
 inputs:
