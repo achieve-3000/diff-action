@@ -37,7 +37,7 @@ jobs:
       name: Checkout code
       uses: actions/checkout@v2
     -
-      uses: achieve-3000/diff-action
+      uses: achieve-3000/diff-action@main
       id: run
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
