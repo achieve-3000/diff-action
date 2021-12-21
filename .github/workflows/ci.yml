@@ -34,59 +34,11 @@ jobs:
     -
       name: Run
       run: npm run all
-
-  build:
-    name: Build
-    needs: [check]
-    runs-on: ubuntu-20.04
-    if: "${{ github.event_name == 'pull_request' }}"
-    outputs:
-      dist: ${{ steps.changes.outputs.dist }}
-    steps:
     -
-      name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.head_ref }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-    -
-      name: Configure git
+      name: Compare the expected and actual dist/ directories
       run: |
-        git config --local user.name "github-actions"
-        git config --local user.email "github-actions@github.com"
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-    -
-      name: Set Node.js 14.x
-      uses: actions/setup-node@v2.5.0
-      with:
-        node-version: 14.x
-    -
-      name: Cache dependencies
-      uses: actions/cache@v2
-      with:
-        path: '**/node_modules'
-        key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
-    -
-      name: Install dependencies
-      run: npm install
-    -
-      name: Package
-      run: npm run build && npm run package
-    -
-      id: changes
-      run: |
-        echo ::set-output name=dist::$(git diff --quiet HEAD -- dist/ && echo unchanged || echo changed)
-    -
-      name: Commit
-      if: "${{ steps.changes.outputs.dist == 'changed' }}"
-      run: |
-        git diff HEAD dist/
-        git commit -m "$(git log --format=%B -n 1 HEAD)" -m 'Build dist - triggered by https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}' -- dist/
-    -
-      name: Checkout head
-      run: git checkout HEAD
-      if: "${{ steps.changes.outputs.dist == 'changed' }}"
-    -
-      name: Push changes
-      run: git push origin ${{ github.head_ref }}
-      if: "${{ steps.changes.outputs.dist == 'changed' }}"
+        if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
+          echo "Detected uncommitted changes after build.  See status below:"
+          git diff
+          exit 1
+        fi

@@ -19,29 +19,58 @@
     modules: '---'
 ```
 
-Run from private repo
+## Dynamic matrix
+[See](.github/workflows/diff.yml)
+
 ```yaml
 jobs:
-    # ...
+  diff:
+    name: Diff
+    runs-on: ubuntu-20.04
+    outputs:
+      modules: "${{ steps.run.outputs.modules }}"
+      changed: "${{ steps.run.outputs.changed }}"
+      diff: "${{ steps.run.outputs.diff }}"
+      tags: "${{ steps.run.outputs.tags }}"
     steps:
     -
-      name: Checkout Action
+      name: Checkout code
       uses: actions/checkout@v2
-      with:
-        repository: achieve3000/diff-action
-        path: ./.temp/diff-action
-        token: ${{ secrets.CI_PAT }}
-        clean: true
-        ref: main
     -
-      name: Diff Action
-      uses: ./.temp/diff-action
+      uses: achieve3000/diff-action
+      id: run
       with:
+        token: ${{ secrets.GITHUB_TOKEN }}
         modules: |
-          my-service-api:
-          my-service-worker:
-          terraform:
-            pattern: infra/terraform/*
-          kubernetes:
-            pattern: infra/kubernetes/*
+          src:
+            tags: [ts]
+          dist:
+            tags: [js]
+            pattern: dist/*
+          workflows:
+            pattern:
+              - .github/workflows/*
+    -
+      name: Print output
+      run: echo '${{ toJSON(steps.run.outputs) }}'
+
+  print-changes:
+    needs: [diff]
+    name: Print changes
+    runs-on: ubuntu-20.04
+    if: ${{ needs.diff.outputs.changed }}
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJson(needs.diff.outputs.modules).changes }}
+    steps:
+    -
+      name: Print module
+      run: echo '${{ matrix.module }}'
+    -
+      name: Print diff
+      run: echo '${{ toJSON(fromJson(needs.diff.outputs.diff)[matrix.module]) }}'
+    -
+      name: Print files
+      run: echo '${{ toJSON(fromJson(needs.diff.outputs.diff)[matrix.module].files.all) }}'
 ```
