@@ -17,7 +17,7 @@ function createParams(): Params {
         {
           name: 'terraform',
           tags: ['terraform', 'infra'],
-          pattern: ['infra/terraform/*']
+          pattern: ['infra/terraform/**']
         }
       ],
       [
@@ -25,7 +25,7 @@ function createParams(): Params {
         {
           name: 'kubernetes',
           tags: ['kubernetes', 'infra'],
-          pattern: ['infra/kubernetes/*']
+          pattern: ['infra/kubernetes/**']
         }
       ],
       [
@@ -33,7 +33,7 @@ function createParams(): Params {
         {
           name: 'module1',
           tags: ['java', 'api'],
-          pattern: ['module1/*']
+          pattern: ['module1/**']
         }
       ],
       [
@@ -211,4 +211,79 @@ test('map diff tags', async () => {
       ['worker', []]
     ])
   )
+})
+
+test('compare commits on subpath', async () => {
+  const params = createParams()
+  const response = {
+    files: [
+      {
+        filename: 'infra/terraform/config/dev/config.yaml',
+        status: 'modified'
+      },
+      {
+        filename: 'infra/terraform/config/qa/config.yaml',
+        status: 'modified'
+      },
+      {
+        filename: 'module1/src/main/resources/log4j.properties',
+        status: 'modified'
+      }
+    ]
+  }
+
+  mockCompareResponse(params, response)
+
+  const adapter = new GithubAdapter(params)
+  const result = await adapter.compare()
+
+  expect(result.changed).toBeTruthy()
+
+  expect(Array.from(result.modules.keys())).toEqual(
+    expect.arrayContaining(['kubernetes', 'terraform', 'module1', 'module2'])
+  )
+
+  expect(result.modules.get('kubernetes')).toMatchObject({
+    changed: false,
+    files: {
+      all: [],
+      added: [],
+      removed: [],
+      renamed: [],
+      modified: []
+    }
+  })
+
+  expect(result.modules.get('terraform')).toMatchObject({
+    changed: true,
+    files: {
+      all: ['infra/terraform/config/dev/config.yaml', 'infra/terraform/config/qa/config.yaml'],
+      added: [],
+      removed: [],
+      renamed: [],
+      modified: ['infra/terraform/config/dev/config.yaml', 'infra/terraform/config/qa/config.yaml']
+    }
+  })
+
+  expect(result.modules.get('module1')).toMatchObject({
+    changed: true,
+    files: {
+      all: ['module1/src/main/resources/log4j.properties'],
+      added: [],
+      removed: [],
+      renamed: [],
+      modified: ['module1/src/main/resources/log4j.properties']
+    }
+  })
+
+  expect(result.modules.get('module2')).toMatchObject({
+    changed: false,
+    files: {
+      all: [],
+      added: [],
+      removed: [],
+      renamed: [],
+      modified: []
+    }
+  })
 })

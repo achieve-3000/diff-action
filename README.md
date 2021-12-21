@@ -28,16 +28,16 @@ jobs:
     name: Diff
     runs-on: ubuntu-20.04
     outputs:
-      modules: "${{ steps.run.outputs.modules }}"
-      changed: "${{ steps.run.outputs.changed }}"
-      diff: "${{ steps.run.outputs.diff }}"
-      tags: "${{ steps.run.outputs.tags }}"
+      modules: ${{ steps.run.outputs.modules }}
+      changed: ${{ steps.run.outputs.changed }}
+      diff: ${{ steps.run.outputs.diff }}
+      tags: ${{ steps.run.outputs.tags }}
     steps:
     -
       name: Checkout code
       uses: actions/checkout@v2
     -
-      uses: achieve-3000/diff-action
+      uses: achieve-3000/diff-action@main
       id: run
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
