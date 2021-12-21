@@ -3,7 +3,7 @@
 # Usage
 ```yaml
 -
-  uses: achieve3000/diff-action
+  uses: achieve-3000/diff-action
   with:
     # Base commit ref (Defaults to current base commit)
     base_ref: ''
@@ -37,7 +37,7 @@ jobs:
       name: Checkout code
       uses: actions/checkout@v2
     -
-      uses: achieve3000/diff-action
+      uses: achieve-3000/diff-action
       id: run
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
