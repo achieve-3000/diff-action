@@ -66,12 +66,12 @@ test('readParams modules', () => {
 
   expect(actual.modules.get('module1')).toMatchObject({
     name: 'module1',
-    pattern: ['module1/*']
+    pattern: ['module1/**']
   })
 
   expect(actual.modules.get('module2')).toMatchObject({
     name: 'module2',
-    pattern: ['module2/*']
+    pattern: ['module2/**']
   })
 
   expect(actual.modules.get('kubernetes')).toMatchObject({
