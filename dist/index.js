@@ -191,7 +191,7 @@ function getModules() {
         }
         const name = (value === null || value === void 0 ? void 0 : value.name) || key;
         const tags = (value === null || value === void 0 ? void 0 : value.tags) || [];
-        const pattern = (value === null || value === void 0 ? void 0 : value.pattern) || [`${key}/*`];
+        const pattern = (value === null || value === void 0 ? void 0 : value.pattern) || [`${key}/**`];
         result.set(name, { name, tags, pattern });
     }
     return result;
