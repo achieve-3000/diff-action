@@ -167,6 +167,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.readParams = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const yaml = __importStar(__nccwpck_require__(1917));
+const fs = __importStar(__nccwpck_require__(7147));
 const github_1 = __nccwpck_require__(5438);
 function getInput(name, defaultValue = '') {
     return core.getInput(name) || defaultValue;
@@ -174,24 +175,53 @@ function getInput(name, defaultValue = '') {
 function getYamlInput(name) {
     const input = getInput(name);
     try {
-        return yaml.load(input);
+        const values = yaml.load(input);
+        const entries = Object.entries(values);
+        return new Map(entries);
     }
     catch (e) {
         core.error(`Failed to parse yaml input ${name}:'${input}'`);
         throw e;
     }
 }
+function getYamlFile(config) {
+    const input = fs.readFileSync(config, 'utf8');
+    try {
+        const values = yaml.load(input);
+        const entries = Object.entries(values);
+        return new Map(entries);
+    }
+    catch (e) {
+        core.error(`Failed to read yaml file ${config}:'${input}'`);
+        throw e;
+    }
+}
+function getModulesMap() {
+    const config = getInput('config', '');
+    const isFile = config ? fs.lstatSync(config).isFile() : false;
+    if (config && !isFile) {
+        core.error(`Invalid config file '${config}'`);
+    }
+    if (!config) {
+        return getYamlInput('modules');
+    }
+    const values = getYamlFile(config);
+    const modules = values.get('modules') || {};
+    const result = new Map(Object.entries(modules));
+    return result;
+}
 function getModules() {
-    const input = getYamlInput('modules') || {};
-    const entries = Object.entries(input);
     const result = new Map();
-    for (const [key, value] of entries) {
-        if ((value === null || value === void 0 ? void 0 : value.pattern) && !Array.isArray(value.pattern)) {
-            value.pattern = [value.pattern];
+    const modules = getModulesMap();
+    for (const key of modules.keys()) {
+        const entry = modules.get(key) || {};
+        const value = new Map(Object.entries(entry));
+        if (value.has('pattern') && !Array.isArray(value.get('pattern'))) {
+            value.set('pattern', [value.get('pattern')]);
         }
-        const name = (value === null || value === void 0 ? void 0 : value.name) || key;
-        const tags = (value === null || value === void 0 ? void 0 : value.tags) || [];
-        const pattern = (value === null || value === void 0 ? void 0 : value.pattern) || [`${key}/**`];
+        const name = value.get('name') || key;
+        const tags = value.get('tags') || [];
+        const pattern = value.get('pattern') || [`${key}/**`];
         result.set(name, { name, tags, pattern });
     }
     return result;

@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as yaml from 'js-yaml'
+import * as fs from 'fs'
 import {Module, Params} from './models'
 import {context} from '@actions/github'
 
@@ -7,30 +8,68 @@ function getInput(name: string, defaultValue = ''): string {
   return core.getInput(name) || defaultValue
 }
 
-function getYamlInput<T>(name: string): T {
+function getYamlInput(name: string): Map<string, Object> {
   const input = getInput(name)
 
   try {
-    return yaml.load(input) as T
+    const values = yaml.load(input) as Object
+    const entries = Object.entries(values)
+
+    return new Map(entries)
   } catch (e) {
     core.error(`Failed to parse yaml input ${name}:'${input}'`)
     throw e
   }
 }
 
-function getModules(): Map<string, Module> {
-  const input = getYamlInput<Map<string, Object>>('modules') || {}
-  const entries = Object.entries(input)
-  const result = new Map()
+function getYamlFile(config: string): Map<string, Object> {
+  const input = fs.readFileSync(config, 'utf8')
 
-  for (const [key, value] of entries) {
-    if (value?.pattern && !Array.isArray(value.pattern)) {
-      value.pattern = [value.pattern]
+  try {
+    const values = yaml.load(input) as Object
+    const entries = Object.entries(values)
+
+    return new Map(entries)
+  } catch (e) {
+    core.error(`Failed to read yaml file ${config}:'${input}'`)
+    throw e
+  }
+}
+
+function getModulesMap(): Map<string, Object> {
+  const config = getInput('config', '')
+  const isFile = config ? fs.lstatSync(config).isFile() : false
+
+  if (config && !isFile) {
+    core.error(`Invalid config file '${config}'`)
+  }
+
+  if (!config) {
+    return getYamlInput('modules')
+  }
+
+  const values = getYamlFile(config)
+  const modules = values.get('modules') || {}
+  const result = new Map(Object.entries(modules))
+
+  return result
+}
+
+function getModules(): Map<string, Module> {
+  const result = new Map()
+  const modules = getModulesMap()
+
+  for (const key of modules.keys()) {
+    const entry = modules.get(key) || {}
+    const value = new Map(Object.entries(entry))
+
+    if (value.has('pattern') && !Array.isArray(value.get('pattern'))) {
+      value.set('pattern', [value.get('pattern')])
     }
 
-    const name: string = value?.name || key
-    const tags: string[] = value?.tags || []
-    const pattern: string[] = value?.pattern || [`${key}/**`]
+    const name: string = value.get('name') || key
+    const tags: string[] = value.get('tags') || []
+    const pattern: string[] = value.get('pattern') || [`${key}/**`]
 
     result.set(name, {name, tags, pattern})
   }
