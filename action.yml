@@ -18,9 +18,13 @@ inputs:
     required: true
     description: 'GH token'
   modules:
-    required: true
-    default: '---'
-    description: 'YAML containing modules to track'
+    default: '{}'
+    required: false
+    description: 'YAML string containing modules to track'
+  config:
+    default: ''
+    required: false
+    description: 'YAML file containing modules to track'
 runs:
   using: 'node12'
   main: 'dist/index.js'

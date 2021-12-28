@@ -24,7 +24,9 @@ jest.mock('@actions/github', () => ({
   }
 }))
 
+import os from 'os'
 import fs from 'fs'
+import path from 'path'
 import yaml from 'js-yaml'
 import {env} from 'process'
 import {resolve} from 'path'
@@ -83,6 +85,52 @@ test('readParams modules', () => {
     name: 'terraform',
     pattern: ['infra/terraform/*']
   })
+})
+
+test('readParams modules from file', () => {
+  const prefix = path.join(os.tmpdir(), 'diff-config-')
+  const filename = path.join(fs.mkdtempSync(prefix), 'cfg.yaml')
+  const data = yaml.dump({
+    modules: {
+      src: {
+        tags: ['ts']
+      },
+      dist: {
+        tags: ['js'],
+        pattern: 'dist/*'
+      },
+      workflows: {
+        pattern: ['.github/workflows/*']
+      }
+    }
+  })
+
+  fs.writeFileSync(filename, data)
+
+  env['INPUT_CONFIG'] = filename
+
+  const actual = readParams()
+
+  expect(actual.modules.size).toEqual(3)
+
+  expect(actual.modules.get('src')).toMatchObject({
+    name: 'src',
+    tags: ['ts'],
+    pattern: ['src/**']
+  })
+
+  expect(actual.modules.get('dist')).toMatchObject({
+    name: 'dist',
+    tags: ['js'],
+    pattern: ['dist/*']
+  })
+
+  expect(actual.modules.get('workflows')).toMatchObject({
+    name: 'workflows',
+    pattern: ['.github/workflows/*']
+  })
+
+  fs.unlinkSync(filename)
 })
 
 test('read default pull_request commit', () => {
