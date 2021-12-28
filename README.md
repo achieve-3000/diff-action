@@ -58,7 +58,7 @@ jobs:
     needs: [diff]
     name: Print changes
     runs-on: ubuntu-20.04
-    if: ${{ needs.diff.outputs.changed }}
+    if: ${{ fromJson(needs.diff.outputs.changed) }}
     strategy:
       fail-fast: false
       matrix:

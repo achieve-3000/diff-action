@@ -53,9 +53,9 @@ export function setDiffOutput(result: Result): DiffOutput {
   const changed = result.changed
 
   core.setOutput('modules', JSON.stringify(modules))
+  core.setOutput('changed', JSON.stringify(changed))
   core.setOutput('tags', JSON.stringify(tags))
   core.setOutput('diff', JSON.stringify(diff))
-  core.setOutput('changed', changed ? 1 : 0)
 
   return {diff, tags, changed, modules}
 }

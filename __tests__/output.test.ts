@@ -104,7 +104,7 @@ test('Set diff output', () => {
   }
 
   expect(actual.changed).toEqual(true)
-  expect(core.setOutput).toHaveBeenCalledWith('changed', 1)
+  expect(core.setOutput).toHaveBeenCalledWith('changed', JSON.stringify(true))
 
   expect(actual.tags).toEqual(expectedTags)
   expect(core.setOutput).toHaveBeenCalledWith('tags', JSON.stringify(expectedTags))
@@ -176,7 +176,7 @@ test('Set diff output no changes', () => {
   }
 
   expect(actual.changed).toEqual(false)
-  expect(core.setOutput).toHaveBeenCalledWith('changed', 0)
+  expect(core.setOutput).toHaveBeenCalledWith('changed', JSON.stringify(false))
 
   expect(actual.tags).toEqual(expectedTags)
   expect(core.setOutput).toHaveBeenCalledWith('tags', JSON.stringify(expectedTags))
