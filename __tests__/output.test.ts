@@ -104,14 +104,86 @@ test('Set diff output', () => {
   }
 
   expect(actual.changed).toEqual(true)
-  expect(core.setOutput).toHaveBeenCalledWith('changed', true)
+  expect(core.setOutput).toHaveBeenCalledWith('changed', 1)
 
   expect(actual.tags).toEqual(expectedTags)
-  expect(core.setOutput).toHaveBeenCalledWith('tags', expectedTags)
+  expect(core.setOutput).toHaveBeenCalledWith('tags', JSON.stringify(expectedTags))
 
   expect(actual.diff).toMatchObject(expectedDiff)
-  expect(core.setOutput).toHaveBeenCalledWith('diff', expectedDiff)
+  expect(core.setOutput).toHaveBeenCalledWith('diff', JSON.stringify(expectedDiff))
 
   expect(actual.modules).toEqual(expectedModules)
-  expect(core.setOutput).toHaveBeenCalledWith('modules', expectedModules)
+  expect(core.setOutput).toHaveBeenCalledWith('modules', JSON.stringify(expectedModules))
+})
+
+test('Set diff output no changes', () => {
+  const actual = setDiffOutput(
+    createResult(
+      new Map([
+        ['module1', []],
+        ['module2', []],
+        ['terraform', []],
+        ['kubernetes', []]
+      ])
+    )
+  )
+
+  const expectedTags = {
+    module1: {
+      changed: false,
+      modules: []
+    },
+    module2: {
+      changed: false,
+      modules: []
+    },
+    terraform: {
+      changed: false,
+      modules: []
+    },
+    kubernetes: {
+      changed: false,
+      modules: []
+    }
+  }
+
+  const expectedModules = {
+    all: ['kubernetes', 'module1', 'module2', 'terraform'],
+    changes: []
+  }
+
+  const expectedDiff = {
+    module1: {
+      changed: false,
+      tags: ['module1'],
+      files: {all: [], added: [], removed: [], renamed: [], modified: []}
+    },
+    module2: {
+      changed: false,
+      tags: ['module2'],
+      files: {all: [], added: [], removed: [], renamed: [], modified: []}
+    },
+    terraform: {
+      changed: false,
+      tags: ['terraform'],
+      files: {all: [], added: [], removed: [], renamed: [], modified: []}
+    },
+    kubernetes: {
+      changed: false,
+      tags: ['kubernetes'],
+      files: {all: [], added: [], removed: [], renamed: [], modified: []}
+    }
+  }
+
+  expect(actual.changed).toEqual(false)
+  expect(core.setOutput).toHaveBeenCalledWith('changed', 0)
+
+  expect(actual.tags).toEqual(expectedTags)
+  expect(core.setOutput).toHaveBeenCalledWith('tags', JSON.stringify(expectedTags))
+
+  expect(actual.diff).toMatchObject(expectedDiff)
+  expect(core.setOutput).toHaveBeenCalledWith('diff', JSON.stringify(expectedDiff))
+
+  expect(actual.modules).toEqual(expectedModules)
+  expect(core.setOutput).toHaveBeenCalledWith('modules', JSON.stringify(expectedModules))
 })

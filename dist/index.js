@@ -351,10 +351,10 @@ function setDiffOutput(result) {
     const modules = createModulesOutput(entries);
     const diff = Object.fromEntries(entries);
     const changed = result.changed;
-    core.setOutput('modules', modules);
-    core.setOutput('changed', changed);
-    core.setOutput('tags', tags);
-    core.setOutput('diff', diff);
+    core.setOutput('modules', JSON.stringify(modules));
+    core.setOutput('tags', JSON.stringify(tags));
+    core.setOutput('diff', JSON.stringify(diff));
+    core.setOutput('changed', changed ? 1 : 0);
     return { diff, tags, changed, modules };
 }
 exports.setDiffOutput = setDiffOutput;
