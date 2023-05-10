@@ -9,9 +9,9 @@ import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
 import micromatch from 'micromatch'
 /* eslint-enable import/named */
 
-type CompareCommitsParameters = RestEndpointMethodTypes['repos']['compareCommits']['parameters']
-type CompareCommitsResponse = RestEndpointMethodTypes['repos']['compareCommits']['response']
-type CompareCommitsDataDiff = CompareCommitsResponse['data']['files']
+type CompareCommitsWithBaseheadParameters = RestEndpointMethodTypes['repos']['compareCommitsWithBasehead']['parameters']
+type CompareCommitsWithBaseheadResponse = RestEndpointMethodTypes['repos']['compareCommitsWithBasehead']['response']
+type CompareCommitsWithBaseheadDataDiff = CompareCommitsWithBaseheadResponse['data']['files']
 
 export class GithubAdapter {
   params: Params
@@ -22,15 +22,14 @@ export class GithubAdapter {
     this.octokit = octokit || getOctokit(params.token)
   }
 
-  private async compareCommits(): Promise<CompareCommitsDataDiff> {
-    const params: CompareCommitsParameters = {
+  async compareCommits(): Promise<CompareCommitsWithBaseheadDataDiff> {
+    const params: CompareCommitsWithBaseheadParameters = {
       owner: this.params.repo_owner,
       repo: this.params.repo_name,
-      head: this.params.head_ref,
-      base: this.params.base_ref
+      basehead: `${this.params.base_ref}...${this.params.head_ref}`
     }
 
-    const result: CompareCommitsResponse = await this.octokit.rest.repos.compareCommits(params)
+    const result: CompareCommitsWithBaseheadResponse = await this.octokit.rest.repos.compareCommitsWithBasehead(params)
     const files = result.data.files
 
     return files
@@ -59,7 +58,7 @@ export class GithubAdapter {
     return result
   }
 
-  compareModule(module: Module, dataDiff: CompareCommitsDataDiff): DiffEntry {
+  compareModule(module: Module, dataDiff: CompareCommitsWithBaseheadDataDiff): DiffEntry {
     const files = dataDiff || []
     const entry: Map<string, string[]> = new Map([
       ['all', []],
