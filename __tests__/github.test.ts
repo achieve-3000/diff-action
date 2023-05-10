@@ -1,8 +1,17 @@
-import {expect, test} from '@jest/globals'
+import {expect, test, jest} from '@jest/globals'
+
 import {randomUUID} from 'crypto'
 import {Params} from '../src/models'
 import {GithubAdapter} from '../src/github'
-import nock from 'nock'
+
+import {components} from '@octokit/openapi-types/types'
+
+/* eslint-disable import/named */
+import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
+/* eslint-enable import/named */
+
+type CompareCommitsWithBaseheadResponse = RestEndpointMethodTypes['repos']['compareCommitsWithBasehead']['response']
+type CompareCommitsWithBaseheadDataDiff = CompareCommitsWithBaseheadResponse['data']['files']
 
 function createParams(): Params {
   return {
@@ -48,51 +57,53 @@ function createParams(): Params {
   }
 }
 
-function mockCompareResponse(params: Params, body: object) {
-  const host = 'https://api.github.com'
-  const path = `/repos/${params.repo_owner}/${params.repo_name}/compare/${params.base_ref}...${params.head_ref}`
+function createMockResponse(files: object[]): Promise<CompareCommitsWithBaseheadDataDiff> {
+  return Promise.resolve(files.map(o => o as components['schemas']['diff-entry']))
+}
 
-  nock(host).persist().get(path).reply(200, body)
+function createGithubAdapter(params: Params, files: object[]) {
+  const adapter = new GithubAdapter(params)
+  const result = createMockResponse(files)
+
+  jest.spyOn(adapter, 'compareCommits').mockImplementation(() => result)
+
+  return adapter
 }
 
 test('compare commits', async () => {
   const params = createParams()
-  const response = {
-    files: [
-      {
-        filename: 'infra/terraform/added.txt',
-        status: 'added'
-      },
-      {
-        filename: 'infra/terraform/modified.txt',
-        status: 'modified'
-      },
-      {
-        filename: 'infra/terraform/renamed.txt',
-        status: 'renamed'
-      },
-      {
-        filename: 'infra/terraform/removed.txt',
-        status: 'removed'
-      },
-      {
-        filename: 'module1/added.txt',
-        status: 'added'
-      },
-      {
-        filename: 'module1/modified.txt',
-        status: 'modified'
-      },
-      {
-        filename: 'module2/modified.txt',
-        status: 'added'
-      }
-    ]
-  }
+  const response = [
+    {
+      filename: 'infra/terraform/added.txt',
+      status: 'added'
+    },
+    {
+      filename: 'infra/terraform/modified.txt',
+      status: 'modified'
+    },
+    {
+      filename: 'infra/terraform/renamed.txt',
+      status: 'renamed'
+    },
+    {
+      filename: 'infra/terraform/removed.txt',
+      status: 'removed'
+    },
+    {
+      filename: 'module1/added.txt',
+      status: 'added'
+    },
+    {
+      filename: 'module1/modified.txt',
+      status: 'modified'
+    },
+    {
+      filename: 'module2/modified.txt',
+      status: 'added'
+    }
+  ]
 
-  mockCompareResponse(params, response)
-
-  const adapter = new GithubAdapter(params)
+  const adapter = createGithubAdapter(params, response)
   const result = await adapter.compare()
 
   expect(Array.from(result.modules.keys())).toEqual(
@@ -151,46 +162,42 @@ test('compare commits', async () => {
 
 test('map diff tags', async () => {
   const params = createParams()
-  const response = {
-    files: [
-      {
-        filename: 'infra/terraform/added.txt',
-        status: 'added'
-      },
-      {
-        filename: 'infra/terraform/modified.txt',
-        status: 'modified'
-      },
-      {
-        filename: 'infra/terraform/renamed.txt',
-        status: 'renamed'
-      },
-      {
-        filename: 'infra/terraform/removed.txt',
-        status: 'removed'
-      },
-      {
-        filename: 'infra/kubernetes/added.txt',
-        status: 'added'
-      },
-      {
-        filename: 'module1/added.txt',
-        status: 'added'
-      },
-      {
-        filename: 'module1/modified.txt',
-        status: 'modified'
-      },
-      {
-        filename: 'module2/modified.txt',
-        status: 'added'
-      }
-    ]
-  }
+  const response = [
+    {
+      filename: 'infra/terraform/added.txt',
+      status: 'added'
+    },
+    {
+      filename: 'infra/terraform/modified.txt',
+      status: 'modified'
+    },
+    {
+      filename: 'infra/terraform/renamed.txt',
+      status: 'renamed'
+    },
+    {
+      filename: 'infra/terraform/removed.txt',
+      status: 'removed'
+    },
+    {
+      filename: 'infra/kubernetes/added.txt',
+      status: 'added'
+    },
+    {
+      filename: 'module1/added.txt',
+      status: 'added'
+    },
+    {
+      filename: 'module1/modified.txt',
+      status: 'modified'
+    },
+    {
+      filename: 'module2/modified.txt',
+      status: 'added'
+    }
+  ]
 
-  mockCompareResponse(params, response)
-
-  const adapter = new GithubAdapter(params)
+  const adapter = createGithubAdapter(params, response)
   const result = await adapter.compare()
 
   expect(Array.from(result.modules.keys())).toEqual(
@@ -215,26 +222,22 @@ test('map diff tags', async () => {
 
 test('compare commits on subpath', async () => {
   const params = createParams()
-  const response = {
-    files: [
-      {
-        filename: 'infra/terraform/config/dev/config.yaml',
-        status: 'modified'
-      },
-      {
-        filename: 'infra/terraform/config/qa/config.yaml',
-        status: 'modified'
-      },
-      {
-        filename: 'module1/src/main/resources/log4j.properties',
-        status: 'modified'
-      }
-    ]
-  }
+  const response = [
+    {
+      filename: 'infra/terraform/config/dev/config.yaml',
+      status: 'modified'
+    },
+    {
+      filename: 'infra/terraform/config/qa/config.yaml',
+      status: 'modified'
+    },
+    {
+      filename: 'module1/src/main/resources/log4j.properties',
+      status: 'modified'
+    }
+  ]
 
-  mockCompareResponse(params, response)
-
-  const adapter = new GithubAdapter(params)
+  const adapter = createGithubAdapter(params, response)
   const result = await adapter.compare()
 
   expect(result.changed).toBeTruthy()

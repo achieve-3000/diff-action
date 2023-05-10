@@ -26,5 +26,5 @@ inputs:
     required: false
     description: 'YAML file containing modules to track'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
