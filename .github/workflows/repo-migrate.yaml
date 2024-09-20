@@ -1,10 +1,11 @@
-name: Migrate Repository and secrets
+name: Migrate Repository
 
 on:
   workflow_dispatch:
 
 jobs:
   migrate:
+    runs_on: [ubuntu-latest]
     steps:
       - name: Migrate Repo
         uses: achieve-3000/ghe-migration-scripts/migrate-repo@v1
@@ -15,6 +16,7 @@ jobs:
           source_token: ${{ secrets.CI_PAT }}
           target_token: ${{ secrets.GH_MIGRATION_TOKEN }}
   migrate-secrets:
+    runs_on: [ ubuntu-latest ]
     steps:
       - name: Migrate Secrets
         uses: achieve-3000/ghe-migration-scripts/migrate-secrets@v1
