@@ -3,6 +3,9 @@ name: Migrate Repository
 on:
   workflow_dispatch:
 
+env:
+    GH_TOKEN: ${{ secrets.CI_PAT }}
+
 jobs:
   migrate:
     runs-on: [ubuntu-latest]
