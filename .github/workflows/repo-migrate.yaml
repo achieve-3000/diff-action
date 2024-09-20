@@ -5,11 +5,7 @@ on:
 
 jobs:
   migrate:
-<<<<<<< HEAD
     runs-on: [ubuntu-latest]
-=======
-    runs_on: [ubuntu-latest]
->>>>>>> 7d9ea562e89a6a87f61a791820a758b0a776eb0b
     steps:
       - name: Migrate Repo
         uses: achieve-3000/ghe-migration-scripts/migrate-repo@v1
@@ -20,11 +16,7 @@ jobs:
           source_token: ${{ secrets.CI_PAT }}
           target_token: ${{ secrets.GH_MIGRATION_TOKEN }}
   migrate-secrets:
-<<<<<<< HEAD
     runs-on: [ ubuntu-latest ]
-=======
-    runs_on: [ ubuntu-latest ]
->>>>>>> 7d9ea562e89a6a87f61a791820a758b0a776eb0b
     steps:
       - name: Migrate Secrets
         uses: achieve-3000/ghe-migration-scripts/migrate-secrets@v1
