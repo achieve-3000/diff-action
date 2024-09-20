@@ -15,14 +15,11 @@ jobs:
           source_url: ${{ github.server_url }}
           source_token: ${{ secrets.CI_PAT }}
           target_token: ${{ secrets.GH_MIGRATION_TOKEN }}
-  migrate-secrets:
-    runs-on: [ ubuntu-latest ]
-    steps:
       - name: Migrate Secrets
         uses: achieve-3000/ghe-migration-scripts/migrate-secrets@v1.0.0
         with:
-          source_repo: ${{ github.repository }}
-          target_repo: "mcgrawhill-llc/a3k-diff-action"
-          source_url: ${{ github.server_url}}
-          source_token: ${{ secrets.CI_PAT }}
-          target_token: ${{ secrets.GH_MIGRATION_TOKEN }}
+            source_repo: ${{ github.repository }}
+            target_repo: "mcgrawhill-llc/a3k-diff-action"
+            source_url: ${{ github.server_url}}
+            source_token: ${{ secrets.CI_PAT }}
+            target_token: ${{ secrets.GH_MIGRATION_TOKEN }}
