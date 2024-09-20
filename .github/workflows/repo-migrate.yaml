@@ -8,7 +8,7 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
       - name: Migrate Repo
-        uses: achieve-3000/ghe-migration-scripts/migrate-repo/action.yml@v1.0.0
+        uses: achieve-3000/ghe-migration-scripts/migrate-repo@v1.0.0
         with:
           source_repo: ${{ github.repository }}
           target_repo: "mcgrawhill-llc/a3k-diff-action"
@@ -16,7 +16,7 @@ jobs:
           source_token: ${{ secrets.CI_PAT }}
           target_token: ${{ secrets.GH_MIGRATION_TOKEN }}
       - name: Migrate Secrets
-        uses: achieve-3000/ghe-migration-scripts/migrate-secrets/action.yml@v1.0.0
+        uses: achieve-3000/ghe-migration-scripts/migrate-secrets@v1.0.0
         with:
             source_repo: ${{ github.repository }}
             target_repo: "mcgrawhill-llc/a3k-diff-action"
