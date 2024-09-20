@@ -8,8 +8,7 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
       - name: Install GEI
-        run:
-            - gh extension install github/gh-gei
+        run: gh extension install github/gh-gei
       - name: Migrate Repo
         uses: achieve-3000/ghe-migration-scripts/migrate-repo@v1.0.0
         with:
