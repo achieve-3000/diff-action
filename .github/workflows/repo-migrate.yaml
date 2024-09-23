@@ -3,28 +3,34 @@ name: Migrate Repository
 on:
   workflow_dispatch:
 
-env:
-    GH_TOKEN: ${{ secrets.CI_PAT }}
-
 jobs:
   migrate:
     runs-on: [ubuntu-latest]
     steps:
       - name: Install GEI
         run: gh extension install github/gh-gei
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Migrate Repo
-        uses: achieve-3000/ghe-migration-scripts/migrate-repo@v1.0.0
+        uses: achieve-3000/ghe-migration-scripts/migrate-repo@v1
         with:
           source_repo: ${{ github.repository }}
           target_repo: "mcgrawhill-llc/a3k-diff-action"
           source_url: ${{ github.server_url }}
           source_token: ${{ secrets.CI_PAT }}
           target_token: ${{ secrets.GH_MIGRATION_TOKEN }}
-      - name: Migrate Secrets
-        uses: achieve-3000/ghe-migration-scripts/migrate-secrets@v1.0.0
+      - name: Migrate repo Secrets
+        uses: achieve-3000/ghe-migration-scripts/migrate-secrets@v1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_ASSUMABLE_ROLES_MAP: ${{ secrets.AWS_ASSUMABLE_ROLES_MAP }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CI_PAT: ${{ secrets.CI_PAT }}
+          ENVIRONMENT_NAMES: ${{ secrets.ENVIRONMENT_NAMES }}
+          MHE_CI_PAT: ${{ secrets.MHE_CI_PAT }}
+          EKS_CLUSTER_MAP: ${{ secrets.EKS_CLUSTER_MAP }}
         with:
-            source_repo: ${{ github.repository }}
-            target_repo: "mcgrawhill-llc/a3k-diff-action"
-            source_url: ${{ github.server_url}}
-            source_token: ${{ secrets.CI_PAT }}
-            target_token: ${{ secrets.GH_MIGRATION_TOKEN }}
+          source_repo: ${{ github.repository }}
+          target_repo: "mcgrawhill-llc/a3k-diff-action"
+          source_token: ${{ secrets.CI_PAT }}
+          target_token: ${{ secrets.GH_MIGRATION_TOKEN }}
